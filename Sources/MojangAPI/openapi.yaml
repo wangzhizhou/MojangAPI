@@ -1,0 +1,205 @@
+openapi: 3.1.0
+info:
+  title: Mojang API - OpenAPI 3.1
+  description: This is Mojang API for Make a ThridParty Launcher yourself
+  version: 1.0.0
+servers:
+  - url: https://launchermeta.mojang.com
+    description: manifest server
+  - url: https://piston-meta.mojang.com
+    description: game info server
+tags:
+  - name: manifest
+    description: fetch information about minecraft version manifest
+  - name: asset
+    description: download minecraft assets
+  - name: auth
+    description: auth on minecraft auth server
+paths:
+  /mc/game/version_manifest.json:
+    servers:
+      - url: https://launchermeta.mojang.com
+        description: manifest server
+    get:
+      tags:
+        - manifest
+      summary: fetch minecraft versions information
+      operationId: getManifest
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Manifest'
+  /v1/packages/{hash}/{version}.json:
+    servers:
+      - url: https://piston-meta.mojang.com
+        description: game info server
+    get:
+      tags:
+        - manifest
+      summary: game info of specify version
+      operationId: getGameInfo
+      parameters:
+        - name: hash
+          in: path
+          description: hash of package
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+        - name: version
+          in: path
+          description: version of game
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Game'
+components:
+  schemas:
+    Manifest:
+      type: object
+      properties:
+        latest:
+          $ref: '#/components/schemas/Latest'
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Version'
+    Latest:
+      type: object
+      properties:
+        release:
+          type: string
+          examples:
+            - 1.21.4
+        snapshot:
+          type: string
+          examples:
+            - 1.21.4
+    Version:
+      type: object
+      properties:
+        id:
+          type: string
+          examples:
+            - 1.21.4
+            - 1.21.4-rc3
+        type:
+          type: string
+          examples:
+            - release
+            - snapshot
+        url:
+          type: string
+          examples:
+            - >-
+              https://piston-meta.mojang.com/v1/packages/a3bcba436caa849622fd7e1e5b89489ed6c9ac63/1.21.4.json
+            - >-
+              https://piston-meta.mojang.com/v1/packages/b36938455cb91bc58c7463de80909764036576a2/1.21.4-rc1.json
+        time:
+          type: string
+          examples:
+            - '2024-12-03T10:24:48+00:00'
+        releaseTime:
+          type: string
+          examples:
+            - '2024-12-03T10:12:57+00:00'
+    Game:
+      type: object
+      properties:
+        arguments:
+          $ref: '#/components/schemas/Arguments'
+    Arguments:
+      type: object
+      properties:
+        game:
+          type: array
+        jvm:
+          type: array
+        assetIndex:
+          type: object
+          properties:
+            id:
+              type: string
+            sha1:
+              type: string
+            size:
+              type: number
+            totalSize:
+              type: number
+            url:
+              type: string
+          assets:
+            type: string
+          complianceLevel:
+            type: number
+          downloads:
+            $ref: '#/components/schemas/Downloads'
+          id: type string
+          javaVersion:
+            type: object
+            properties:
+              component:
+                type: string
+              majorVersion:
+                type: number
+          libraries:
+            type: array
+            items:
+              $ref: ''
+    Downloads:
+      type: object
+      properties:
+        client:
+          $ref: '#/components/schemas/Asset'
+        client_mappings:
+          $ref: '#/components/schemas/Asset'
+        server:
+          $ref: '#/components/schemas/Asset'
+        server_mappings:
+          $ref: '#/components/schemas/Asset'
+    Asset:
+      type: object
+      properties:
+        sha1:
+          type: string
+        size:
+          type: number
+        url:
+          type: string
+        path:
+          type: string
+    Library:
+      type: object
+      properties:
+        downloads:
+          type: object
+          properties:
+            artifact:
+              $ref: '#/components/schemas/Asset'
+        name:
+          type: string
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rule'
+    Rule:
+      type: object
+      properties:
+        action:
+          type: string
+        os:
+          type: object
+          properties:
+            name:
+              type: string
+
