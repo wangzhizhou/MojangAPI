@@ -5,64 +5,53 @@ info:
   version: 1.0.0
 servers:
   - url: https://launchermeta.mojang.com
-    description: manifest server
   - url: https://piston-meta.mojang.com
-    description: game info server
-tags:
-  - name: manifest
-    description: fetch information about minecraft version manifest
-  - name: asset
-    description: download minecraft assets
-  - name: auth
-    description: auth on minecraft auth server
+  - url: https://libraries.minecraft.net
+  - url: https://resources.download.minecraft.net
 paths:
   /mc/game/version_manifest.json:
     servers:
       - url: https://launchermeta.mojang.com
-        description: manifest server
     get:
-      tags:
-        - manifest
-      summary: fetch minecraft versions information
-      operationId: getManifest
+      summary: request minecraft game version mainfest
+      operationId: getMinecraftGameVersionManifest
       responses:
         '200':
-          description: Successful operation
+          description: Success
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Manifest'
-  /v1/packages/{hash}/{version}.json:
+  /v1/packages/{sha1}/{id}.json:
     servers:
       - url: https://piston-meta.mojang.com
-        description: game info server
     get:
-      tags:
-        - manifest
-      summary: game info of specify version
-      operationId: getGameInfo
+      summary: request specified package info with sha1 and id
+      operationId: getPackage
       parameters:
-        - name: hash
+        - name: id
           in: path
-          description: hash of package
+          description: package id
           required: true
           allowEmptyValue: false
           schema:
             type: string
-        - name: version
+            default: 1.21.4
+        - name: sha1
           in: path
-          description: version of game
+          description: sha1 of package
           required: true
           allowEmptyValue: false
           schema:
             type: string
+            default: a3bcba436caa849622fd7e1e5b89489ed6c9ac63
       responses:
         '200':
-          description: Successful operation
+          description: Success
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Game'
+                $ref: '#/components/schemas/Package'
 components:
   schemas:
     Manifest:
@@ -113,18 +102,16 @@ components:
           type: string
           examples:
             - '2024-12-03T10:12:57+00:00'
-    Game:
+    Package:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/Minecraft'
+        - $ref: '#/components/schemas/Resource'
+    Minecraft:
       type: object
       properties:
         arguments:
           $ref: '#/components/schemas/Arguments'
-    Arguments:
-      type: object
-      properties:
-        game:
-          type: array
-        jvm:
-          type: array
         assetIndex:
           type: object
           properties:
@@ -134,28 +121,67 @@ components:
               type: string
             size:
               type: number
+              format: int64
             totalSize:
               type: number
+              format: int64
             url:
               type: string
-          assets:
-            type: string
-          complianceLevel:
-            type: number
-          downloads:
-            $ref: '#/components/schemas/Downloads'
-          id: type string
-          javaVersion:
-            type: object
-            properties:
-              component:
-                type: string
-              majorVersion:
-                type: number
-          libraries:
-            type: array
-            items:
-              $ref: ''
+        assets:
+          type: string
+        complianceLevel:
+          type: number
+          format: int64
+        downloads:
+          $ref: '#/components/schemas/Downloads'
+        id:
+          type: string
+        javaVersion:
+          type: object
+          properties:
+            component:
+              type: string
+            majorVersion:
+              type: number
+              format: int64
+        libraries:
+          type: array
+          items:
+            $ref: '#/components/schemas/Library'
+        logging:
+          type: object
+          properties:
+            client:
+              type: object
+              properties:
+                argument:
+                  type: string
+                file:
+                  $ref: '#/components/schemas/Asset'
+                type:
+                  type: string
+        mainClass:
+          type: string
+        minimumLauncherVersion:
+          type: number
+          format: int64
+        releaseTime:
+          type: string
+        time:
+          type: string
+        type:
+          type: string
+    Arguments:
+      type: object
+      properties:
+        game:
+          type: array
+          items:
+            $ref: '#/components/schemas/Argument'
+        jvm:
+          type: array
+          items:
+            $ref: '#/components/schemas/Argument'
     Downloads:
       type: object
       properties:
@@ -169,11 +195,18 @@ components:
           $ref: '#/components/schemas/Asset'
     Asset:
       type: object
+      required:
+        - sha1
+        - size
+        - url
       properties:
+        id:
+          type: string
         sha1:
           type: string
         size:
           type: number
+          format: int64
         url:
           type: string
         path:
@@ -194,6 +227,8 @@ components:
             $ref: '#/components/schemas/Rule'
     Rule:
       type: object
+      required:
+        - action
       properties:
         action:
           type: string
@@ -202,4 +237,45 @@ components:
           properties:
             name:
               type: string
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
+    Argument:
+      oneOf:
+        - type: string
+        - type: object
+          properties:
+            rules:
+              type: array
+              items:
+                $ref: '#/components/schemas/Rule'
+            value:
+              oneOf:
+                - type: string
+                - type: array
+                  items:
+                    type: string
+    Feature:
+      type: object
+      propertyNames:
+        type: boolean
+      examples:
+        - is_demo_user: true
+        - has_custom_resolution: false
+    Resource:
+      type: object
+      properties:
+        objects:
+          type: object
+          propertyNames:
+            $ref: '#/components/schemas/Object'
+    Object:
+      type: object
+      properties:
+        hash:
+          type: string
+        size:
+          type: number
+          format: int64
 
