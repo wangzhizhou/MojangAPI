@@ -47,25 +47,17 @@ extension Components.Schemas.Object {
     
     public var URL: URL {
         let hostURL = try! Servers.Server4.url()
+        let path = "\(dirName)/\(fileName)"
         if #available(macOS 13.0, *) {
-            return hostURL.appending(path: hash)
+            return hostURL.appending(path: path)
         } else {
-            return hostURL.appendingPathComponent(hash)
+            return hostURL.appendingPathComponent(path)
         }
     }
     
-    public var dirPath: String {
-        let startIndex = hash.startIndex
-        let endIndex = hash.index(startIndex, offsetBy: 1)
-        let path = String(hash[startIndex...endIndex])
-        return path
-    }
+    public var dirName: String { String(hash.prefix(2)) }
     
-    public var filePath: String {
-        let filename = hash
-        let dirPath = self.dirPath
-        return "\(dirPath)/\(filename)" // TODO: 改成平台兼容方式
-    }
+    public var fileName: String { hash }
 }
 
 extension String {
