@@ -26,6 +26,6 @@ let package = Package(
 
 check the tests to learn usage of this api: [MojangAPITests](Tests/MojangAPITests/MojangAPITests.swift)
 
-- [swift]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dswift-versions>
-- [platform]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dplatforms>
-- [repo]: <https://swiftpackageindex.com/wangzhizhou/MojangAPI>
+[swift]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dswift-versions>
+[platform]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dplatforms>
+[repo]: <https://swiftpackageindex.com/wangzhizhou/MojangAPI>
