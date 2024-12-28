@@ -124,6 +124,10 @@ components:
         - libraries
         - downloads
         - mainClass
+        - id
+        - type
+        - time
+        - releaseTime
       properties:
         arguments:
           $ref: '#/components/schemas/Arguments'
@@ -287,7 +291,7 @@ components:
                     type: string
     Features:
       type: object
-      propertyNames:
+      additionalProperties:
         type: boolean
       examples:
         - is_demo_user: true
@@ -299,7 +303,7 @@ components:
       properties:
         objects:
           type: object
-          propertyNames:
+          additionalProperties:
             $ref: '#/components/schemas/Object'
     Object:
       type: object

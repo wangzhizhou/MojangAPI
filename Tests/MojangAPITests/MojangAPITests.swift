@@ -21,5 +21,5 @@ func fetchManifest() async throws {
     #expect(gameVersion.mainClass.isEmpty == false)
     
     let assetIndexObject = try #require(try await gameVersion.assetIndexObject)
-    #expect(assetIndexObject.objects.value.isEmpty == false)
+    #expect(assetIndexObject.objects.additionalProperties.isEmpty == false)
 }
