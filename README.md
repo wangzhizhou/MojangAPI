@@ -2,12 +2,7 @@
 
 OpenAPI of Mojang for Minecraft: [openapi.yaml](Sources/MojangAPI/openapi.yaml)
 
-your can use this api to fetch minecraft related info about: 
-- version
-- library
-- assets
-
-you can make your own minecraft launcher if you understand java and launcher workflow
+[![][swift][repo][![][platform][repo]
 
 ## Usage
 
@@ -29,4 +24,8 @@ let package = Package(
 )
 ```
 
-check the tests for usage example: [MojangAPITests](Tests/MojangAPITests/MojangAPITests.swift)
+check the tests to learn usage of this api: [MojangAPITests](Tests/MojangAPITests/MojangAPITests.swift)
+
+- [swift]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dswift-versions>
+- [platform]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dplatforms>
+- [repo]: <https://swiftpackageindex.com/wangzhizhou/MojangAPI>
