@@ -303,6 +303,9 @@ components:
             $ref: '#/components/schemas/Object'
     Object:
       type: object
+      required:
+        - hash
+        - size
       properties:
         hash:
           type: string
