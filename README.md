@@ -2,7 +2,7 @@
 
 OpenAPI of Mojang for Minecraft: [openapi.yaml](Sources/MojangAPI/openapi.yaml)
 
-[![][swift]][repo][![][platform]][repo]
+[![][swift]][repo] [![][platform]][repo]
 
 ## Usage
 
