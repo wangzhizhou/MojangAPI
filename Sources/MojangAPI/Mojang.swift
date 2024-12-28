@@ -1,81 +1,40 @@
-import OpenAPIRuntime
-import OpenAPIURLSession
-
-public typealias Manifest = Components.Schemas.Manifest
-public typealias Version = Components.Schemas.Version
-
-public typealias GameVersion = Components.Schemas.GameVersion
-public typealias GameVersionAsset = Components.Schemas.GameVersionAsset
-
 public struct Mojang {
     
-    private static let manifestClient = Client(
-        serverURL: try! Servers.Server1.url(),
-        transport: URLSessionTransport()
-    )
-    
-    public static func fetchManifest() async throws -> Manifest {
-        let response = try await manifestClient.getMinecraftGameVersionManifest()
-        return try response.ok.body.json
-    }
-}
-
-extension Mojang {
-    
-    private static let packageClient = Client(
-        serverURL: try! Servers.Server2.url(),
-        transport: URLSessionTransport()
-    )
-    
-    static func fetchPackage(id: String, sha1: String) async throws -> Components.Schemas.Package {
-        let response = try await packageClient.getPackage(path: .init(sha1: sha1, id: id))
-        return try response.ok.body.json
-    }
-}
-
-extension Version {
-    private var sha1: String {
-        String(url.split(separator: "/").dropLast().last!) // TODO: 写死分割号的方式存在问题，后续修改
-    }
-    public var gameVersion: GameVersion? {
-        get async throws {
-            guard case let .GameVersion(gameVersion) = try await Mojang.fetchPackage(id: id, sha1: sha1)
-            else {
-                return nil
-            }
-            return gameVersion
+    public static func latest(type: VertionType = .release, forceUpdate: Bool = true) async throws -> Version? {
+        let manifest = try await manifest(forceUpdate: forceUpdate)
+        let latestVersion = switch type {
+        case .release:
+            manifest.latest.release
+        case .snapshot:
+            manifest.latest.snapshot
+        default:
+            "" // TODO: old_beta、old_alpah
         }
-        
+        let latest = try await versions(id: latestVersion, type: type).first
+        return latest
     }
-}
-
-extension Components.Schemas.GameVersion {
     
-    public var assetIndexObject: GameVersionAsset? {
-        get async throws {
-            guard case let .GameVersionAsset(gameAsset) = try await Mojang.fetchPackage(id: assetIndex.id, sha1: assetIndex.sha1)
-            else {
-                return nil
+    public static func versions(id: String? = nil, type: VertionType = .release, forceUpdate: Bool = true) async throws -> [Version] {
+        let versions = try await manifest(forceUpdate: forceUpdate).versions.filter { version in
+            if let id {
+                return version._type == type && version.id.contains(id)
+            } else {
+                return version._type == type
             }
-            return gameAsset
+        }
+        return versions
+    }
+    
+    public static func manifest(forceUpdate: Bool = true) async throws -> Manifest {
+        if let cachedManifest, !forceUpdate {
+            return cachedManifest
+        } else {
+            let response = try await manifestClient.getMinecraftGameVersionManifest()
+            let remoteManifest = try response.ok.body.json
+            cachedManifest = remoteManifest
+            return remoteManifest
         }
     }
-}
-
-import System
-
-extension Components.Schemas.Object {
     
-    public var dirPath: String {
-        let startIndex = hash.startIndex
-        let endIndex = hash.index(startIndex, offsetBy: 1)
-        let path = String(hash[startIndex...endIndex])
-        return path
-    }
-
-    public var filePath: String {
-        let filename = hash
-        let dirPath = self.dirPath
-        return "\(dirPath)/\(filename)" // TODO: 改成平台兼容方式
-    }
+    nonisolated(unsafe) private static var cachedManifest: Manifest? = nil
 }

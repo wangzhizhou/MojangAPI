@@ -70,6 +70,7 @@ components:
       type: object
       required:
         - release
+        - snapshot
       properties:
         release:
           type: string
@@ -93,9 +94,11 @@ components:
             - 1.21.4-rc3
         type:
           type: string
-          examples:
+          enum:
             - release
             - snapshot
+            - old_beta
+            - old_alpha
         url:
           type: string
           examples:
@@ -361,4 +364,3 @@ components:
         size:
           type: number
           format: int64
-
