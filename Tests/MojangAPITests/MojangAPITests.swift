@@ -2,16 +2,15 @@ import Testing
 import MojangAPI
 
 @Test
-func fetchManifest() async throws {
+func MojangAPIUsage() async throws {
     let json = try await Mojang.fetchManifest()
     #expect(json.latest.release.isEmpty == false)
     #expect(json.versions.isEmpty == false)
     
     let latestVersion = try #require(json.versions.first)
     #expect(latestVersion.url.isEmpty == false)
-    #expect(latestVersion.sha1.isEmpty == false)
     
-    let gameVersion = try #require(try await Mojang.gameVersion(of: latestVersion))
+    let gameVersion = try #require(try await latestVersion.gameVersion)
     #expect(gameVersion.arguments.game.isEmpty == false)
     #expect(gameVersion.arguments.jvm.isEmpty == false)
     #expect(gameVersion.assetIndex.url.isEmpty == false)

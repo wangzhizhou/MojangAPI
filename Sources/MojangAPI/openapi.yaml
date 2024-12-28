@@ -129,27 +129,12 @@ components:
         - time
         - releaseTime
         - minimumLauncherVersion
+        - logging
       properties:
         arguments:
           $ref: '#/components/schemas/Arguments'
         assetIndex:
-          type: object
-          required:
-            - sha1
-            - url
-          properties:
-            id:
-              type: string
-            sha1:
-              type: string
-            size:
-              type: number
-              format: int64
-            totalSize:
-              type: number
-              format: int64
-            url:
-              type: string
+          $ref: '#/components/schemas/AssetIndex'
         assets:
           type: string
         complianceLevel:
@@ -175,14 +160,20 @@ components:
             $ref: '#/components/schemas/Library'
         logging:
           type: object
+          required:
+            - client
           properties:
             client:
               type: object
+              required:
+                - file
+                - type
+                - argument
               properties:
                 argument:
                   type: string
                 file:
-                  $ref: '#/components/schemas/Asset'
+                  $ref: '#/components/schemas/AssetWithId'
                 type:
                   type: string
         mainClass:
@@ -226,9 +217,45 @@ components:
           $ref: '#/components/schemas/Asset'
         server_mappings:
           $ref: '#/components/schemas/Asset'
+    AssetIndex:
+      type: object
+      required:
+        - id
+        - totalSize
+        - sha1
+        - size
+        - url
+      properties:
+        id:
+          type: string
+        totalSize:
+          type: number
+          format: int64
+        sha1:
+          type: string
+        size:
+          type: number
+          format: int64
+        url:
+          type: string
     Asset:
       type: object
       required:
+        - sha1
+        - size
+        - url
+      properties:
+        sha1:
+          type: string
+        size:
+          type: number
+          format: int64
+        url:
+          type: string
+    AssetWithId:
+      type: object
+      required:
+        - id
         - sha1
         - size
         - url
@@ -242,7 +269,22 @@ components:
           format: int64
         url:
           type: string
+    AssetWithPath:
+      type: object
+      required:
+        - path
+        - sha1
+        - size
+        - url
+      properties:
         path:
+          type: string
+        sha1:
+          type: string
+        size:
+          type: number
+          format: int64
+        url:
           type: string
     Library:
       type: object
@@ -252,9 +294,11 @@ components:
       properties:
         downloads:
           type: object
+          required:
+            - artifact
           properties:
             artifact:
-              $ref: '#/components/schemas/Asset'
+              $ref: '#/components/schemas/AssetWithPath'
         name:
           type: string
         rules:
