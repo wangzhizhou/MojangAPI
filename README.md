@@ -12,7 +12,15 @@ you can make your own minecraft launcher if you understand java and launcher wor
 ## Usage
 
 ```swift
-
+import PackageDescription
+let package = Package(    
+    dependencies: [
+        .package(url: "https://github.com/wangzhizhou/MojangAPI.git", branch: "main"),
+    ],
+    targets: [
+        .target(name: "<Your Target Name>", dependencies: ["MojangAPI"])
+    ]
+)
 ```
 
 check the tests for usage example: [MojangAPITests](Tests/MojangAPITests/MojangAPITests.swift)
