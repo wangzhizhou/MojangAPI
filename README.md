@@ -2,7 +2,7 @@
 
 OpenAPI of Mojang for Minecraft
 
-[OpenAPI Doc](Sources/MojangAPI/openapi.yaml)
+[openapi.yaml](Sources/MojangAPI/openapi.yaml)
 
 your can use this api to fetch minecraft related info about: `version`、`library`、`assets`
 
@@ -14,4 +14,4 @@ and make your own minecraft launcher if you understand jave and launcher workflo
 
 ```
 
-Check the Tests for usage example: [MojangAPITests](Tests/MojangAPITests/MojangAPITests.swift)
+check the tests for usage example: [MojangAPITests](Tests/MojangAPITests/MojangAPITests.swift)
