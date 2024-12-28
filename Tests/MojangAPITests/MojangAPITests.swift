@@ -7,6 +7,7 @@ import Testing
     try #expect(Servers.Server2.url().host() == "piston-meta.mojang.com")
     try #expect(Servers.Server3.url().host() == "libraries.minecraft.net")
     try #expect(Servers.Server4.url().host() == "resources.download.minecraft.net")
+    try #expect(Servers.Server5.url().host() == "authserver.mojang.com")
 }
 
 @Test func manifest() async throws {
@@ -58,4 +59,15 @@ func versions(id: String?, type: VertionType) async throws {
         #expect(versions.first?._type == .oldAlpha)
         #expect(versions.last?._type == .oldAlpha)
     }
+}
+
+@Test
+func authenticate() async throws {
+    let agent = Components.Schemas.Agent(name: "minecraft", version: 1)
+    let username = "<microsoft_account_name>"
+    let password = "<microsoft_account_password>"
+    let body = Components.Schemas.AuthReqParam(agent: agent, username: username, password: password)
+    let response = try await Mojang.auth(action: .authenticate, reqBody: .json(body))
+    #expect(!response.accessToken.isEmpty)
+    #expect(!response.clientToken.isEmpty)
 }

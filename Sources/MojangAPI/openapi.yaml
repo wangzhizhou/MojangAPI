@@ -1,19 +1,29 @@
 openapi: 3.1.0
 info:
   title: Mojang API - OpenAPI 3.1
-  description: This is Mojang API for Make a ThridParty Launcher yourself
+  description: |-
+    This is Mojang API written in Swift for making a launcher yourself
+
+    - **[MojangAPI Repo](https://github.com/wangzhizhou/MojangAPI)**
+
   version: 1.0.0
+tags:
+  - name: launcher
+  - name: authserver
 servers:
   - url: https://launchermeta.mojang.com
   - url: https://piston-meta.mojang.com
   - url: https://libraries.minecraft.net
   - url: https://resources.download.minecraft.net
+  - url: https://authserver.mojang.com
 paths:
   /mc/game/version_manifest.json:
     servers:
       - url: https://launchermeta.mojang.com
     get:
-      summary: request minecraft game version mainfest
+      tags:
+        - launcher
+      summary: get minecraft launcher meta information
       operationId: getMinecraftGameVersionManifest
       responses:
         '200':
@@ -26,7 +36,9 @@ paths:
     servers:
       - url: https://piston-meta.mojang.com
     get:
-      summary: request specified package info with sha1 and id
+      tags:
+        - launcher
+      summary: get specified package meta with sha1 and id
       operationId: getPackage
       parameters:
         - name: sha1
@@ -52,6 +64,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Package'
+  /{auth}:
+    servers:
+      - url: https://authserver.mojang.com
+    post:
+      tags:
+        - authserver
+      summary: authserver.mojang.com has be blocked, this endpoint failed
+      deprecated: true
+      operationId: auth
+      parameters:
+        - name: auth
+          in: path
+          required: true
+          description: auth action
+          schema:
+            type: string
+            enum:
+              - authenticate
+              - validate
+              - refresh
+            default: authenticate
+      requestBody:
+        $ref: '#/components/requestBodies/AuthRequestBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSuccessResponse'
 components:
   schemas:
     Manifest:
@@ -97,8 +135,8 @@ components:
           enum:
             - release
             - snapshot
-            - old_beta
             - old_alpha
+            - old_beta
         url:
           type: string
           examples:
@@ -364,3 +402,88 @@ components:
         size:
           type: number
           format: int64
+    Agent:
+      type: object
+      required:
+        - name
+        - version
+      properties:
+        name:
+          type: string
+          default: Minecraft
+        version:
+          type: number
+          format: int64
+          default: 1
+    Profile:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    AuthReqParam:
+      type: object
+      required:
+        - agent
+        - username
+        - password
+      properties:
+        agent:
+          $ref: '#/components/schemas/Agent'
+        username:
+          type: string
+        password:
+          type: string
+        clientToken:
+          type: string
+    AuthSuccessResp:
+      type: object
+      required:
+        - accessToken
+        - clientToken
+        - availableProfiles
+        - selectedProfile
+      properties:
+        accessToken:
+          type: string
+        clientToken:
+          type: string
+        availableProfiles:
+          $ref: '#/components/schemas/Profile'
+        selectedProfile:
+          $ref: '#/components/schemas/Profile'
+    AuthErrorResp:
+      type: object
+      required:
+        - error
+        - errorMessage
+      properties:
+        error:
+          type: string
+        errorMessage:
+          type: string
+        case:
+          type: string
+  requestBodies:
+    AuthRequestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthReqParam'
+  responses:
+    AuthSuccessResponse:
+      description: Success
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthSuccessResp'
+    AuthErrorResponse:
+      description: Failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthErrorResp'

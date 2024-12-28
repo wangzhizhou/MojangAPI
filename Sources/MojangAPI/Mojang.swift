@@ -36,5 +36,11 @@ public struct Mojang {
         }
     }
     
+    public static func auth(action: AuthAction, reqBody: AuthReqBody) async throws -> AuthRespone {
+        let response = try await authClient.auth(path: .init(auth: action), body: reqBody)
+        return try response.ok.body.json
+        
+    }
+    
     nonisolated(unsafe) private static var cachedManifest: Manifest? = nil
 }

@@ -20,6 +20,11 @@ extension Mojang {
         let response = try await packageClient.getPackage(path: .init(sha1: sha1, id: id))
         return try response.ok.body.json
     }
+    
+    static let authClient = Client(
+        serverURL: try! Servers.Server5.url(),
+        transport: URLSessionTransport()
+    )
 }
 
 // Private

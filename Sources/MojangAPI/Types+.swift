@@ -12,6 +12,11 @@ public typealias Version = Components.Schemas.Version
 public typealias GameVersion = Components.Schemas.GameVersion
 public typealias GameVersionAsset = Components.Schemas.GameVersionAsset
 public typealias VertionType = Components.Schemas.Version._TypePayload
+public typealias AuthAction = Operations.Auth.Input.Path.AuthPayload
+public typealias AuthAgent = Components.Schemas.Agent
+public typealias AuthReqParam = Components.Schemas.AuthReqParam
+public typealias AuthReqBody = Components.RequestBodies.AuthRequestBody
+public typealias AuthRespone = Components.Schemas.AuthSuccessResp
 
 extension Version {
     private var sha1: String {
