@@ -29,14 +29,6 @@ paths:
       summary: request specified package info with sha1 and id
       operationId: getPackage
       parameters:
-        - name: id
-          in: path
-          description: package id
-          required: true
-          allowEmptyValue: false
-          schema:
-            type: string
-            default: 1.21.4
         - name: sha1
           in: path
           description: sha1 of package
@@ -45,6 +37,14 @@ paths:
           schema:
             type: string
             default: a3bcba436caa849622fd7e1e5b89489ed6c9ac63
+        - name: id
+          in: path
+          description: package id
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            default: 1.21.4
       responses:
         '200':
           description: Success
@@ -56,6 +56,9 @@ components:
   schemas:
     Manifest:
       type: object
+      required:
+        - latest
+        - versions
       properties:
         latest:
           $ref: '#/components/schemas/Latest'
@@ -65,6 +68,8 @@ components:
             $ref: '#/components/schemas/Version'
     Latest:
       type: object
+      required:
+        - release
       properties:
         release:
           type: string
@@ -76,6 +81,10 @@ components:
             - 1.21.4
     Version:
       type: object
+      required:
+        - id
+        - type
+        - url
       properties:
         id:
           type: string
@@ -105,15 +114,24 @@ components:
     Package:
       type: object
       oneOf:
-        - $ref: '#/components/schemas/Minecraft'
-        - $ref: '#/components/schemas/Resource'
-    Minecraft:
+        - $ref: '#/components/schemas/GameVersion'
+        - $ref: '#/components/schemas/GameVersionAsset'
+    GameVersion:
       type: object
+      required:
+        - arguments
+        - assetIndex
+        - libraries
+        - downloads
+        - mainClass
       properties:
         arguments:
           $ref: '#/components/schemas/Arguments'
         assetIndex:
           type: object
+          required:
+            - sha1
+            - url
           properties:
             id:
               type: string
@@ -138,6 +156,8 @@ components:
           type: string
         javaVersion:
           type: object
+          required:
+            - majorVersion
           properties:
             component:
               type: string
@@ -173,6 +193,9 @@ components:
           type: string
     Arguments:
       type: object
+      required:
+        - game
+        - jvm
       properties:
         game:
           type: array
@@ -184,6 +207,11 @@ components:
             $ref: '#/components/schemas/Argument'
     Downloads:
       type: object
+      required:
+        - client
+        - client_mappings
+        - server
+        - server_mappings
       properties:
         client:
           $ref: '#/components/schemas/Asset'
@@ -213,6 +241,9 @@ components:
           type: string
     Library:
       type: object
+      required:
+        - name
+        - downloads
       properties:
         downloads:
           type: object
@@ -238,9 +269,7 @@ components:
             name:
               type: string
         features:
-          type: array
-          items:
-            $ref: '#/components/schemas/Feature'
+          $ref: '#/components/schemas/Features'
     Argument:
       oneOf:
         - type: string
@@ -256,15 +285,17 @@ components:
                 - type: array
                   items:
                     type: string
-    Feature:
+    Features:
       type: object
       propertyNames:
         type: boolean
       examples:
         - is_demo_user: true
         - has_custom_resolution: false
-    Resource:
+    GameVersionAsset:
       type: object
+      required:
+        - objects
       properties:
         objects:
           type: object

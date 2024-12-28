@@ -9,7 +9,7 @@ public struct Mojang {
     }
     
     public static func fetchPackage(id: String, sha1: String) async throws -> Components.Schemas.Package {
-        let response = try await packageClient.getPackage(path: .init(id: id, sha1: sha1))
+        let response = try await packageClient.getPackage(path: .init(sha1: sha1, id: id))
         return try response.ok.body.json
     }
 }
