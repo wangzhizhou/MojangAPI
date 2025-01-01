@@ -1,6 +1,6 @@
 public struct Mojang {
     
-    public static func latest(type: VertionType = .release, forceUpdate: Bool = true) async throws -> Version? {
+    public static func latest(type: BuildType = .release, forceUpdate: Bool = true) async throws -> Version? {
         let manifest = try await manifest(forceUpdate: forceUpdate)
         let latestVersion = switch type {
         case .release:
@@ -14,12 +14,12 @@ public struct Mojang {
         return latest
     }
     
-    public static func versions(id: String? = nil, type: VertionType = .release, forceUpdate: Bool = true) async throws -> [Version] {
+    public static func versions(id: String? = nil, type: BuildType = .release, forceUpdate: Bool = true) async throws -> [Version] {
         let versions = try await manifest(forceUpdate: forceUpdate).versions.filter { version in
             if let id {
-                return version._type == type && version.id.contains(id)
+                return version.buildType == type && version.id.contains(id)
             } else {
-                return version._type == type
+                return version.buildType == type
             }
         }
         return versions

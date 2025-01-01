@@ -9,16 +9,16 @@ import Foundation
 
 public typealias Manifest = Components.Schemas.Manifest
 public typealias Version = Components.Schemas.Version
+public typealias BuildType = Components.Schemas.Version._TypePayload
 public typealias GameVersion = Components.Schemas.GameVersion
 public typealias GameVersionAsset = Components.Schemas.GameVersionAsset
-public typealias VertionType = Components.Schemas.Version._TypePayload
 public typealias AuthAction = Operations.Auth.Input.Path.AuthPayload
 public typealias AuthAgent = Components.Schemas.Agent
 public typealias AuthReqParam = Components.Schemas.AuthReqParam
 public typealias AuthReqBody = Components.RequestBodies.AuthRequestBody
 public typealias AuthRespone = Components.Schemas.AuthSuccessResp
 
-extension Version {
+extension Version: Identifiable {
     private var sha1: String {
         String(url.split(separator: "/").dropLast().last!) // TODO: 写死分割号的方式存在问题，后续修改
     }
@@ -30,7 +30,9 @@ extension Version {
             }
             return gameVersion
         }
-        
+    }
+    public var buildType: BuildType {
+        return self._type
     }
 }
 

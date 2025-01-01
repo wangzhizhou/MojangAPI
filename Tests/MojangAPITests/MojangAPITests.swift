@@ -37,27 +37,27 @@ import Testing
 }
 
 @Test(arguments: [
-    ("1.21.4", VertionType.snapshot),
-    ("1.21.4", VertionType.release),
-    ("1.21.1", VertionType.snapshot),
-    (nil, VertionType.oldAlpha),
-    (nil, VertionType.oldBeta),
+    ("1.21.4", BuildType.snapshot),
+    ("1.21.4", BuildType.release),
+    ("1.21.1", BuildType.snapshot),
+    (nil, BuildType.oldAlpha),
+    (nil, BuildType.oldBeta),
 ])
-func versions(id: String?, type: VertionType) async throws {
+func versions(id: String?, type: BuildType) async throws {
     let versions = try await Mojang.versions(id: id, type: type)
     switch type {
     case .release:
-        #expect(versions.first?._type == .release)
-        #expect(versions.last?._type == .release)
+        #expect(versions.first?.buildType == .release)
+        #expect(versions.last?.buildType == .release)
     case .snapshot:
-        #expect(versions.first?._type == .snapshot)
-        #expect(versions.last?._type == .snapshot)
+        #expect(versions.first?.buildType == .snapshot)
+        #expect(versions.last?.buildType == .snapshot)
     case .oldBeta:
-        #expect(versions.first?._type == .oldBeta)
-        #expect(versions.last?._type == .oldBeta)
+        #expect(versions.first?.buildType == .oldBeta)
+        #expect(versions.last?.buildType == .oldBeta)
     case .oldAlpha:
-        #expect(versions.first?._type == .oldAlpha)
-        #expect(versions.last?._type == .oldAlpha)
+        #expect(versions.first?.buildType == .oldAlpha)
+        #expect(versions.last?.buildType == .oldAlpha)
     }
 }
 
