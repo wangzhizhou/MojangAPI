@@ -8,6 +8,7 @@ import MojangAPI
     try #expect(Servers.Server3.url().host() == "libraries.minecraft.net")
     try #expect(Servers.Server4.url().host() == "resources.download.minecraft.net")
     try #expect(Servers.Server5.url().host() == "authserver.mojang.com")
+    try #expect(Servers.Server6.url().host() == "api.mojang.com")
 }
 
 @Test func manifest() async throws {
@@ -70,4 +71,11 @@ func authenticate() async throws {
     let response = try await Mojang.auth(action: .authenticate, reqBody: .json(body))
     #expect(!response.accessToken.isEmpty)
     #expect(!response.clientToken.isEmpty)
+}
+
+@Test
+func getUserInfo() async throws {
+    let info = try await Mojang.userInfo(with: "Notch")
+    #expect(info.name == "Notch")
+    #expect(info.id == "069a79f444e94726a5befca90e38aaf5")
 }

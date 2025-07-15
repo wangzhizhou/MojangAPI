@@ -17,6 +17,7 @@ public typealias AuthAgent = Components.Schemas.Agent
 public typealias AuthReqParam = Components.Schemas.AuthReqParam
 public typealias AuthReqBody = Components.RequestBodies.AuthRequestBody
 public typealias AuthRespone = Components.Schemas.AuthSuccessResp
+public typealias UserInfo = Components.Schemas.UserInfo
 
 extension Version: Identifiable {
     private var sha1: String {

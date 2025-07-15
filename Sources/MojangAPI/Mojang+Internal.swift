@@ -25,6 +25,11 @@ extension Mojang {
         serverURL: try! Servers.Server5.url(),
         transport: URLSessionTransport()
     )
+    
+    static let apiClient = Client(
+        serverURL: try! Servers.Server6.url(),
+        transport: URLSessionTransport()
+    )
 }
 
 // Private

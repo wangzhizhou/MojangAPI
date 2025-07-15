@@ -16,6 +16,7 @@ servers:
   - url: https://libraries.minecraft.net
   - url: https://resources.download.minecraft.net
   - url: https://authserver.mojang.com
+  - url: https://api.mojang.com
 paths:
   /mc/game/version_manifest.json:
     servers:
@@ -90,6 +91,30 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/AuthSuccessResponse'
+  /users/profiles/minecraft/{username}:
+    servers:
+        - url: https://api.mojang.com
+    get:
+      tags:
+        - api
+      summary: get user info
+      operationId: getUserInfoWithName
+      parameters:
+        - name: username
+          in: path
+          description: username of player
+          required: true
+          allowEmptyValue: false
+          schema:
+            type: string
+            default: Notch
+      responses:
+        '200':
+          description: Success
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/UserInfo'
 components:
   schemas:
     Manifest:
@@ -468,6 +493,20 @@ components:
           type: string
         case:
           type: string
+    UserInfo:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          examples:
+            - Notch
+        name:
+          type: string
+          examples:
+            - 069a79f444e94726a5befca90e38aaf5
   requestBodies:
     AuthRequestBody:
       content:

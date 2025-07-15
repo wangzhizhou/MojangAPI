@@ -42,5 +42,10 @@ public struct Mojang {
         
     }
     
+    public static func userInfo(with name: String) async throws -> UserInfo {
+        let response = try await apiClient.getUserInfoWithName(path: .init(username: name))
+        return try response.ok.body.json
+    }
+    
     nonisolated(unsafe) private static var cachedManifest: Manifest? = nil
 }
