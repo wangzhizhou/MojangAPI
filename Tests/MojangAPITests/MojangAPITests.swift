@@ -1,5 +1,5 @@
 import Testing
-@testable import MojangAPI
+import MojangAPI
 
 @Test func Hosts() async throws {
     // Server Host
