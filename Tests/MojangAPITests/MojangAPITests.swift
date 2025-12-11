@@ -8,8 +8,10 @@ import Foundation
     try #expect(Servers.Server2.url().host() == "piston-meta.mojang.com")
     try #expect(Servers.Server3.url().host() == "libraries.minecraft.net")
     try #expect(Servers.Server4.url().host() == "resources.download.minecraft.net")
-    try #expect(Servers.Server5.url().host() == "authserver.mojang.com")
-    try #expect(Servers.Server6.url().host() == "api.mojang.com")
+    try #expect(Servers.Server5.url().host() == "api.mojang.com")
+    try #expect(Servers.Server6.url().host() == "user.auth.xboxlive.com")
+    try #expect(Servers.Server7.url().host() == "xsts.auth.xboxlive.com")
+    try #expect(Servers.Server8.url().host() == "api.minecraftservices.com")
 }
 
 @Test func manifest() async throws {

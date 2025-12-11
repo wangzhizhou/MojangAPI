@@ -45,8 +45,34 @@ extension Mojang {
     
     static var apiClient: Client {
         Client(
-            serverURL: (try? Servers.Server6.url()) ?? Foundation.URL(string: "https://api.mojang.com")!,
+            serverURL: (try? Servers.Server5.url()) ?? Foundation.URL(string: "https://api.mojang.com")!,
             transport: URLSessionTransport()
+        )
+    }
+    static var xblClient: Client {
+        Client(
+            serverURL: (try? Servers.Server7.url()) ?? Foundation.URL(string: "https://user.auth.xboxlive.com")!,
+            transport: URLSessionTransport()
+        )
+    }
+    static var xstsClient: Client {
+        Client(
+            serverURL: (try? Servers.Server8.url()) ?? Foundation.URL(string: "https://xsts.auth.xboxlive.com")!,
+            transport: URLSessionTransport()
+        )
+    }
+    static var msClient: Client {
+        Client(
+            serverURL: (try? Servers.Server8.url()) ?? Foundation.URL(string: "https://api.minecraftservices.com")!,
+            transport: URLSessionTransport()
+        )
+    }
+    static func msClient(withAccessToken token: String) -> Client {
+        Client(
+            serverURL: (try? Servers.Server8.url()) ?? Foundation.URL(string: "https://api.minecraftservices.com")!,
+            configuration: .init(),
+            transport: URLSessionTransport(),
+            middlewares: [BearerTokenMiddleware(token: token)]
         )
     }
 }
