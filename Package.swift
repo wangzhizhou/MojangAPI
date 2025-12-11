@@ -53,7 +53,10 @@ let package = Package(
         ),
         .testTarget(
             name: "MojangAPITests",
-            dependencies: ["MojangAPI"]
+            dependencies: ["MojangAPI"],
+            resources: [
+                .process("Fixtures")
+            ]
         ),
     ]
 )

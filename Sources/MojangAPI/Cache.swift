@@ -1,0 +1,67 @@
+import Foundation
+
+actor APICache {
+    static let shared = APICache()
+
+    private var manifest: Manifest?
+    private var manifestExpiresAt: Date?
+
+    private struct GameVersionEntry { var value: GameVersion; var lastAccess: Date }
+    private struct AssetIndexEntry { var value: GameVersionAsset; var lastAccess: Date }
+    private var gameVersionsById: [String: GameVersionEntry] = [:]
+    private var assetIndicesById: [String: AssetIndexEntry] = [:]
+    private let gameVersionCapacity = 128
+    private let assetIndexCapacity = 128
+
+    func getManifest(forceUpdate: Bool, ttl: TimeInterval, loader: () async throws -> Manifest) async throws -> Manifest {
+        if let m = manifest, let exp = manifestExpiresAt, !forceUpdate, exp > Date() {
+            return m
+        }
+        let new = try await loader()
+        manifest = new
+        manifestExpiresAt = Date().addingTimeInterval(ttl)
+        return new
+    }
+
+    func getGameVersion(id: String, sha1: String, loader: () async throws -> Components.Schemas.Package) async throws -> GameVersion? {
+        if var entry = gameVersionsById[id] {
+            entry.lastAccess = Date()
+            gameVersionsById[id] = entry
+            return entry.value
+        }
+        let packageOutput = try await loader()
+        if case let .GameVersion(gameVersion) = packageOutput {
+            evictIfNeededGameVersions()
+            gameVersionsById[id] = GameVersionEntry(value: gameVersion, lastAccess: Date())
+            return gameVersion
+        }
+        return nil
+    }
+
+    func getAssetIndex(id: String, sha1: String, loader: () async throws -> Components.Schemas.Package) async throws -> GameVersionAsset? {
+        if var entry = assetIndicesById[id] {
+            entry.lastAccess = Date()
+            assetIndicesById[id] = entry
+            return entry.value
+        }
+        let packageOutput = try await loader()
+        if case let .GameVersionAsset(assetIndex) = packageOutput {
+            evictIfNeededAssetIndices()
+            assetIndicesById[id] = AssetIndexEntry(value: assetIndex, lastAccess: Date())
+            return assetIndex
+        }
+        return nil
+    }
+
+    private func evictIfNeededGameVersions() {
+        if gameVersionsById.count >= gameVersionCapacity, let (key, _) = gameVersionsById.min(by: { $0.value.lastAccess < $1.value.lastAccess }) {
+            gameVersionsById.removeValue(forKey: key)
+        }
+    }
+
+    private func evictIfNeededAssetIndices() {
+        if assetIndicesById.count >= assetIndexCapacity, let (key, _) = assetIndicesById.min(by: { $0.value.lastAccess < $1.value.lastAccess }) {
+            assetIndicesById.removeValue(forKey: key)
+        }
+    }
+}

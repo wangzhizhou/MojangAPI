@@ -65,32 +65,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Package'
-  /{auth}:
-    servers:
-      - url: https://authserver.mojang.com
-    post:
-      tags:
-        - authserver
-      summary: authserver.mojang.com has be blocked, this endpoint failed
-      deprecated: true
-      operationId: auth
-      parameters:
-        - name: auth
-          in: path
-          required: true
-          description: auth action
-          schema:
-            type: string
-            enum:
-              - authenticate
-              - validate
-              - refresh
-            default: authenticate
-      requestBody:
-        $ref: '#/components/requestBodies/AuthRequestBody'
-      responses:
-        '200':
-          $ref: '#/components/responses/AuthSuccessResponse'
   /users/profiles/minecraft/{username}:
     servers:
         - url: https://api.mojang.com
@@ -427,72 +401,6 @@ components:
         size:
           type: number
           format: int64
-    Agent:
-      type: object
-      required:
-        - name
-        - version
-      properties:
-        name:
-          type: string
-          default: Minecraft
-        version:
-          type: number
-          format: int64
-          default: 1
-    Profile:
-      type: object
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-    AuthReqParam:
-      type: object
-      required:
-        - agent
-        - username
-        - password
-      properties:
-        agent:
-          $ref: '#/components/schemas/Agent'
-        username:
-          type: string
-        password:
-          type: string
-        clientToken:
-          type: string
-    AuthSuccessResp:
-      type: object
-      required:
-        - accessToken
-        - clientToken
-        - availableProfiles
-        - selectedProfile
-      properties:
-        accessToken:
-          type: string
-        clientToken:
-          type: string
-        availableProfiles:
-          $ref: '#/components/schemas/Profile'
-        selectedProfile:
-          $ref: '#/components/schemas/Profile'
-    AuthErrorResp:
-      type: object
-      required:
-        - error
-        - errorMessage
-      properties:
-        error:
-          type: string
-        errorMessage:
-          type: string
-        case:
-          type: string
     UserInfo:
       type: object
       required:
@@ -507,22 +415,3 @@ components:
           type: string
           examples:
             - 069a79f444e94726a5befca90e38aaf5
-  requestBodies:
-    AuthRequestBody:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AuthReqParam'
-  responses:
-    AuthSuccessResponse:
-      description: Success
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AuthSuccessResp'
-    AuthErrorResponse:
-      description: Failure
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/AuthErrorResp'

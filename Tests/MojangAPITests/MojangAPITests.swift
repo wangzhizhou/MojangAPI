@@ -1,5 +1,6 @@
 import Testing
 import MojangAPI
+import Foundation
 
 @Test func Hosts() async throws {
     // Server Host
@@ -62,16 +63,6 @@ func versions(id: String?, type: BuildType) async throws {
     }
 }
 
-@Test
-func authenticate() async throws {
-    let agent = Components.Schemas.Agent(name: "minecraft", version: 1)
-    let username = "<microsoft_account_name>"
-    let password = "<microsoft_account_password>"
-    let body = Components.Schemas.AuthReqParam(agent: agent, username: username, password: password)
-    let response = try await Mojang.auth(action: .authenticate, reqBody: .json(body))
-    #expect(!response.accessToken.isEmpty)
-    #expect(!response.clientToken.isEmpty)
-}
 
 @Test
 func getUserInfo() async throws {

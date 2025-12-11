@@ -12,24 +12,28 @@ public typealias Version = Components.Schemas.Version
 public typealias BuildType = Components.Schemas.Version._TypePayload
 public typealias GameVersion = Components.Schemas.GameVersion
 public typealias GameVersionAsset = Components.Schemas.GameVersionAsset
-public typealias AuthAction = Operations.Auth.Input.Path.AuthPayload
-public typealias AuthAgent = Components.Schemas.Agent
-public typealias AuthReqParam = Components.Schemas.AuthReqParam
-public typealias AuthReqBody = Components.RequestBodies.AuthRequestBody
-public typealias AuthRespone = Components.Schemas.AuthSuccessResp
 public typealias UserInfo = Components.Schemas.UserInfo
 
 extension Version: Identifiable {
-    private var sha1: String {
-        String(url.split(separator: "/").dropLast().last!) // TODO: 写死分割号的方式存在问题，后续修改
+    private var packageSHA1: String? {
+        guard let versionURL = Foundation.URL(string: url) else { return nil }
+        // 从路径组件中查找 40 位十六进制字符串
+        for comp in versionURL.pathComponents {
+            if comp.count == 40 && comp.allSatisfy({
+                ("0123456789abcdefABCDEF").contains($0)
+            }) {
+                return comp.lowercased()
+            }
+        }
+        return nil
     }
     public var gameVersion: GameVersion? {
         get async throws {
-            guard case let .GameVersion(gameVersion) = try await Mojang.fetchPackage(id: id, sha1: sha1)
-            else {
-                return nil
+            guard let packageSHA1 = packageSHA1 else { throw MojangAPIError.missingSHA1 }
+            if let gameVersion = try await APICache.shared.getGameVersion(id: id, sha1: packageSHA1, loader: { try await Mojang.fetchPackage(id: id, sha1: packageSHA1) }) {
+                return gameVersion
             }
-            return gameVersion
+            throw MojangAPIError.cacheMiss
         }
     }
     public var buildType: BuildType {
@@ -41,11 +45,10 @@ extension Components.Schemas.GameVersion {
     
     public var assetIndexObject: GameVersionAsset? {
         get async throws {
-            guard case let .GameVersionAsset(gameAsset) = try await Mojang.fetchPackage(id: assetIndex.id, sha1: assetIndex.sha1)
-            else {
-                return nil
+            if let assetIndex = try await APICache.shared.getAssetIndex(id: assetIndex.id, sha1: assetIndex.sha1, loader: { try await Mojang.fetchPackage(id: assetIndex.id, sha1: assetIndex.sha1) }) {
+                return assetIndex
             }
-            return gameAsset
+            throw MojangAPIError.cacheMiss
         }
     }
 }
@@ -53,8 +56,8 @@ extension Components.Schemas.GameVersion {
 
 extension Components.Schemas.Object {
     
-    public var URL: URL {
-        let hostURL = try! Servers.Server4.url()
+    public var resourceURL: URL {
+        let hostURL = (try? Servers.Server4.url()) ?? Foundation.URL(string: "https://resources.download.minecraft.net")!
         let path = "\(dirName)/\(fileName)"
         if #available(macOS 13.0, *) {
             return hostURL.appending(path: path)
@@ -66,8 +69,4 @@ extension Components.Schemas.Object {
     public var dirName: String { String(hash.prefix(2)) }
     
     public var fileName: String { hash }
-}
-
-extension String {
-    var asURL: URL? { URL(string: self) }
 }

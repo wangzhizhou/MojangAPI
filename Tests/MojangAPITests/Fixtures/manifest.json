@@ -1,0 +1,16 @@
+{
+  "latestRelease": "1.21.1",
+  "latestSnapshot": "24w45a",
+  "versions": [
+    {
+      "id": "1.21.1",
+      "type": "release",
+      "url": "https://piston-meta.mojang.com/v1/packages/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/1.21.1.json"
+    },
+    {
+      "id": "24w45a",
+      "type": "snapshot",
+      "url": "https://piston-meta.mojang.com/v1/packages/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/24w45a.json"
+    }
+  ]
+}

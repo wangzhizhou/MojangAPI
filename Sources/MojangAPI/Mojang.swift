@@ -1,3 +1,5 @@
+import Foundation
+
 public struct Mojang {
     
     public static func latest(type: BuildType = .release, forceUpdate: Bool = true) async throws -> Version? {
@@ -26,26 +28,54 @@ public struct Mojang {
     }
     
     public static func manifest(forceUpdate: Bool = true) async throws -> Manifest {
-        if let cachedManifest, !forceUpdate {
-            return cachedManifest
-        } else {
-            let response = try await manifestClient.getMinecraftGameVersionManifest()
-            let remoteManifest = try response.ok.body.json
-            cachedManifest = remoteManifest
-            return remoteManifest
+        do {
+            let manifestValue = try await APICache.shared.getManifest(forceUpdate: forceUpdate, ttl: manifestCacheTimeToLive) {
+                let output = try await Mojang.withRetry { try await manifestClient.getMinecraftGameVersionManifest() }
+                return try output.jsonOrThrow()
+            }
+            return manifestValue
+        } catch {
+            throw MojangAPIError.wrap(error)
         }
     }
     
-    public static func auth(action: AuthAction, reqBody: AuthReqBody) async throws -> AuthRespone {
-        let response = try await authClient.auth(path: .init(auth: action), body: reqBody)
-        return try response.ok.body.json
-        
-    }
     
     public static func userInfo(with name: String) async throws -> UserInfo {
-        let response = try await apiClient.getUserInfoWithName(path: .init(username: name))
-        return try response.ok.body.json
+        do {
+            let output = try await Mojang.withRetry { try await apiClient.getUserInfoWithName(path: .init(username: name)) }
+            return try output.jsonOrThrow()
+        } catch {
+            throw MojangAPIError.wrap(error)
+        }
     }
     
-    nonisolated(unsafe) private static var cachedManifest: Manifest? = nil
+    private static let manifestCacheTimeToLive: TimeInterval = 3600
+}
+
+public extension Mojang {
+    static func latestInfo(type: BuildKind = .release, forceUpdate: Bool = true) async throws -> VersionInfo? {
+        let summary = ManifestSummary(fromManifest: try await manifest(forceUpdate: forceUpdate))
+        let id: String = {
+            switch type {
+            case .release: return summary.latestRelease
+            case .snapshot: return summary.latestSnapshot
+            case .oldBeta, .oldAlpha: return ""
+            }
+        }()
+        let versions = try await versionsInfo(id: id.isEmpty ? nil : id, type: type, forceUpdate: forceUpdate)
+        return versions.first
+    }
+
+    static func versionsInfo(id: String? = nil, type: BuildKind = .release, forceUpdate: Bool = true) async throws -> [VersionInfo] {
+        let summary = ManifestSummary(fromManifest: try await manifest(forceUpdate: forceUpdate))
+        return summary.versions.filter { v in
+            if let id { return v.type == type && v.id.contains(id) }
+            return v.type == type
+        }
+    }
+
+    static func userProfile(with name: String) async throws -> UserProfile {
+        let info = try await userInfo(with: name)
+        return UserProfile(name: info.name, id: info.id)
+    }
 }
