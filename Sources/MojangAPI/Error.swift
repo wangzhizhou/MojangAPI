@@ -9,6 +9,7 @@ public enum MojangAPIError: Error, Equatable {
     case cacheMiss
     case missingSHA1
     case unknown(String)
+    case httpError(status: Int, code: Int?, message: String)
 }
 
 extension MojangAPIError {

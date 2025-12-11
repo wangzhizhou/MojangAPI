@@ -15,8 +15,10 @@ servers:
   - url: https://piston-meta.mojang.com
   - url: https://libraries.minecraft.net
   - url: https://resources.download.minecraft.net
-  - url: https://authserver.mojang.com
   - url: https://api.mojang.com
+  - url: https://user.auth.xboxlive.com
+  - url: https://xsts.auth.xboxlive.com
+  - url: https://api.minecraftservices.com
 paths:
   /mc/game/version_manifest.json:
     servers:
@@ -89,7 +91,199 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/UserInfo'
+
+  /user/authenticate:
+    servers:
+      - url: https://user.auth.xboxlive.com
+    post:
+      tags:
+        - microsoft
+      summary: Xbox Live user authenticate with Microsoft access token
+      operationId: xboxUserAuthenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/XboxUserAuthenticateRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XboxUserAuthenticateResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /xsts/authorize:
+    servers:
+      - url: https://xsts.auth.xboxlive.com
+    post:
+      tags:
+        - microsoft
+      summary: Xbox XSTS authorize using Xbox Live token
+      operationId: xstsAuthorize
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/XstsAuthorizeRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XstsAuthorizeResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authentication/login_with_xbox:
+    servers:
+      - url: https://api.minecraftservices.com
+    post:
+      tags:
+        - microsoft
+      summary: Login to Minecraft services with XSTS identity token
+      operationId: loginWithXbox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginWithXboxRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginWithXboxResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /minecraft/profile:
+    servers:
+      - url: https://api.minecraftservices.com
+    get:
+      tags:
+        - microsoft
+      summary: Get Minecraft profile with bearer token
+      operationId: getMinecraftProfile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: Bearer access token
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MinecraftProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     Manifest:
       type: object
@@ -245,9 +439,7 @@ components:
       type: object
       required:
         - client
-        - client_mappings
         - server
-        - server_mappings
       properties:
         client:
           $ref: '#/components/schemas/Asset'
@@ -415,3 +607,155 @@ components:
           type: string
           examples:
             - 069a79f444e94726a5befca90e38aaf5
+    XboxUserAuthenticateRequest:
+      type: object
+      required:
+        - RelyingParty
+        - TokenType
+        - Properties
+      properties:
+        RelyingParty:
+          type: string
+          default: 'http://auth.xboxlive.com'
+        TokenType:
+          type: string
+          default: 'JWT'
+        Properties:
+          type: object
+          required:
+            - AuthMethod
+            - SiteName
+            - RpsTicket
+          properties:
+            AuthMethod:
+              type: string
+              default: 'RPS'
+            SiteName:
+              type: string
+              default: 'user.auth.xboxlive.com'
+            RpsTicket:
+              type: string
+              description: 'Microsoft access token prefixed with d='
+
+    XboxUserAuthenticateResponse:
+      type: object
+      required:
+        - Token
+        - DisplayClaims
+      properties:
+        Token:
+          type: string
+        DisplayClaims:
+          type: object
+          required:
+            - xui
+          properties:
+            xui:
+              type: array
+              items:
+                type: object
+                required:
+                  - uhs
+                properties:
+                  uhs:
+                    type: string
+
+    XstsAuthorizeRequest:
+      type: object
+      required:
+        - RelyingParty
+        - TokenType
+        - Properties
+      properties:
+        RelyingParty:
+          type: string
+          default: 'rp://api.minecraftservices.com/'
+        TokenType:
+          type: string
+          default: 'JWT'
+        Properties:
+          type: object
+          required:
+            - SandboxId
+            - UserTokens
+          properties:
+            SandboxId:
+              type: string
+              default: 'RETAIL'
+            UserTokens:
+              type: array
+              items:
+                type: string
+
+    XstsAuthorizeResponse:
+      type: object
+      required:
+        - Token
+        - DisplayClaims
+      properties:
+        Token:
+          type: string
+        DisplayClaims:
+          type: object
+          required:
+            - xui
+          properties:
+            xui:
+              type: array
+              items:
+                type: object
+                required:
+                  - uhs
+                properties:
+                  uhs:
+                    type: string
+
+    LoginWithXboxRequest:
+      type: object
+      required:
+        - identityToken
+      properties:
+        identityToken:
+          type: string
+          description: 'XBL3.0 x=<uhs>;<xsts_token>'
+        ensureLegacyEnabled:
+          type: boolean
+          default: true
+
+    LoginWithXboxResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: number
+          format: int64
+
+    MinecraftProfile:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: number
+          format: int64
