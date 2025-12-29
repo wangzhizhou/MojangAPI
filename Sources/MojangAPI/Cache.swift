@@ -13,6 +13,12 @@ actor APICache {
     private let gameVersionCapacity = 128
     private let assetIndexCapacity = 128
 
+    /// 获取清单并进行 TTL 缓存命中。
+    /// - Parameters:
+    ///   - forceUpdate: 是否忽略缓存强制刷新。
+    ///   - ttl: 缓存有效时长（秒）。
+    ///   - loader: 清单加载器（网络/解析）。
+    /// - Returns: 清单对象。
     func getManifest(forceUpdate: Bool, ttl: TimeInterval, loader: () async throws -> Manifest) async throws -> Manifest {
         if let m = manifest, let exp = manifestExpiresAt, !forceUpdate, exp > Date() {
             return m
@@ -23,6 +29,12 @@ actor APICache {
         return new
     }
 
+    /// 获取指定版本 id 对应的 GameVersion（带 LRU 缓存）。
+    /// - Parameters:
+    ///   - id: 版本号。
+    ///   - sha1: 包的 SHA1。
+    ///   - loader: 包加载器，返回 Package。
+    /// - Returns: 命中时返回 GameVersion，否则为 nil。
     func getGameVersion(id: String, sha1: String, loader: () async throws -> Components.Schemas.Package) async throws -> GameVersion? {
         if var entry = gameVersionsById[id] {
             entry.lastAccess = Date()
@@ -38,6 +50,12 @@ actor APICache {
         return nil
     }
 
+    /// 获取资源索引对应的 GameVersionAsset（带 LRU 缓存）。
+    /// - Parameters:
+    ///   - id: 资源索引 id。
+    ///   - sha1: 资源索引的 SHA1。
+    ///   - loader: 包加载器，返回 Package。
+    /// - Returns: 命中时返回 GameVersionAsset，否则为 nil。
     func getAssetIndex(id: String, sha1: String, loader: () async throws -> Components.Schemas.Package) async throws -> GameVersionAsset? {
         if var entry = assetIndicesById[id] {
             entry.lastAccess = Date()

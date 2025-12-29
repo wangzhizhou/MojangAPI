@@ -2,6 +2,12 @@ import Foundation
 
 public struct Mojang {
     
+     /// 获取指定类型的最新版本（生成类型）。
+    /// - Parameters:
+    ///   - type: 版本类型（release/snapshot/oldAlpha/oldBeta）。
+    ///   - forceUpdate: 是否忽略缓存强制刷新清单。
+    /// - Returns: 匹配的最新 `Version`，若不存在则为 nil。
+    /// - Throws: 网络或解析相关错误。
     public static func latest(type: BuildType = .release, forceUpdate: Bool = true) async throws -> Version? {
         let manifest = try await manifest(forceUpdate: forceUpdate)
         let latestVersion = switch type {
@@ -16,6 +22,13 @@ public struct Mojang {
         return latest
     }
     
+    /// 按类型与可选关键字过滤版本（生成类型）。
+    /// - Parameters:
+    ///   - id: 版本号关键字（例如 "1.21"），为 nil 表示不过滤。
+    ///   - type: 版本类型。
+    ///   - forceUpdate: 是否忽略缓存强制刷新清单。
+    /// - Returns: 过滤后的 `Version` 数组。
+    /// - Throws: 网络或解析相关错误。
     public static func versions(id: String? = nil, type: BuildType = .release, forceUpdate: Bool = true) async throws -> [Version] {
         let versions = try await manifest(forceUpdate: forceUpdate).versions.filter { version in
             if let id {
@@ -27,6 +40,10 @@ public struct Mojang {
         return versions
     }
     
+    /// 获取版本清单（含 TTL 缓存，默认 1 小时）。
+    /// - Parameter forceUpdate: 是否忽略缓存强制刷新。
+    /// - Returns: `Manifest` 清单对象。
+    /// - Throws: 网络或解析相关错误。
     public static func manifest(forceUpdate: Bool = true) async throws -> Manifest {
         do {
             let manifestValue = try await APICache.shared.getManifest(forceUpdate: forceUpdate, ttl: manifestCacheTimeToLive) {
@@ -40,6 +57,10 @@ public struct Mojang {
     }
     
     
+    /// 根据用户名查询 Mojang 用户信息（生成类型）。
+    /// - Parameter name: 玩家用户名。
+    /// - Returns: `UserInfo`，包含 id 与 name。
+    /// - Throws: 当用户不存在或接口错误时抛出相应错误。
     public static func userInfo(with name: String) async throws -> UserInfo {
         do {
             let output = try await Mojang.withRetry { try await apiClient.getUserInfoWithName(path: .init(username: name)) }
@@ -53,6 +74,11 @@ public struct Mojang {
 }
 
 public extension Mojang {
+    /// 获取指定类型的最新版本（传输对象）。
+    /// - Parameters:
+    ///   - type: 版本类型。
+    ///   - forceUpdate: 是否忽略缓存强制刷新清单。
+    /// - Returns: 最新 `VersionInfo`，若不存在则为 nil。
     static func latestInfo(type: BuildKind = .release, forceUpdate: Bool = true) async throws -> VersionInfo? {
         let summary = ManifestSummary(fromManifest: try await manifest(forceUpdate: forceUpdate))
         let id: String = {
@@ -66,6 +92,12 @@ public extension Mojang {
         return versions.first
     }
 
+    /// 按类型与关键字过滤版本（传输对象）。
+    /// - Parameters:
+    ///   - id: 版本号关键字（nil 表示不过滤）。
+    ///   - type: 版本类型。
+    ///   - forceUpdate: 是否忽略缓存强制刷新清单。
+    /// - Returns: 过滤后的 `VersionInfo` 列表。
     static func versionsInfo(id: String? = nil, type: BuildKind = .release, forceUpdate: Bool = true) async throws -> [VersionInfo] {
         let summary = ManifestSummary(fromManifest: try await manifest(forceUpdate: forceUpdate))
         return summary.versions.filter { v in
@@ -74,6 +106,9 @@ public extension Mojang {
         }
     }
 
+    /// 根据用户名查询用户资料（传输对象）。
+    /// - Parameter name: 玩家用户名。
+    /// - Returns: `UserProfile`，包含 id 与 name。
     static func userProfile(with name: String) async throws -> UserProfile {
         let info = try await userInfo(with: name)
         return UserProfile(name: info.name, id: info.id)
