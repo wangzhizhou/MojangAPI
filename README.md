@@ -52,77 +52,42 @@ let profile = try await Mojang.userProfile(with: "Notch")
 [platform]: <https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fwangzhizhou%2FMojangAPI%2Fbadge%3Ftype%3Dplatforms>
 [repo]: <https://swiftpackageindex.com/wangzhizhou/MojangAPI>
 
-## 微软授权流程
+## 说明
 
-### 令牌模式（推荐，已获微软 OAuth Access Token）
+- 本库仅包含 Mojang 原生接口：版本清单、包信息与用户信息
+- 统一错误类型：`requestFailed(status)` 与 `notFound`（404），解析扩展使用 `output.jsonOrThrow()`
+- 并发安全缓存（actor）：缓存清单与按版本细粒度数据，含 LRU 逐出策略；清单 TTL 默认 1 小时
+- 为适配上游包响应在部分版本中缺少 `client_mappings`/`server_mappings`，`Downloads` 必填字段仅保留 `client` 与 `server`
 
-环境变量（测试用例会自动读取并执行，否则跳过）：
-- `MS_ACCESS_TOKEN`
+## API 一览
 
-调用示例：
+- Mojang.manifest(forceUpdate:)：获取清单（含 TTL 缓存）
+- Mojang.latestInfo(type:forceUpdate:)：获取指定类型最新版本（传输对象）
+- Mojang.versionsInfo(id:type:forceUpdate:)：按类型/关键字过滤版本（传输对象）
+- Mojang.userProfile(with:)：按用户名查询用户资料（传输对象）
+- Version.gameVersion：解析版本对应的包详情（GameVersion）
+- GameVersion.assetIndexObject：解析资源索引对应对象列表（GameVersionAsset）
+- Components.Schemas.Object.resourceURL：构造资源下载 URL
+
+## 更多示例
+
 ```swift
-import MojangAPI
-
-let msAccessToken = ProcessInfo.processInfo.environment["MS_ACCESS_TOKEN"]!
-let (xblToken, _) = try await MicrosoftAuth.xboxUserAuthenticate(msAccessToken: msAccessToken)
-let (xstsToken, uhs) = try await MicrosoftAuth.xstsAuthorize(xblToken: xblToken)
-let login = try await MicrosoftAuth.loginWithXbox(xstsToken: xstsToken, uhs: uhs)
-let profile = try await MicrosoftAuth.getMinecraftProfile(accessToken: login.accessToken)
-```
-
-### 用户名密码模式（ROPC）
-
-说明：使用微软消费者租户的“资源所有者密码凭据（ROPC）”流程，需确保客户端允许该授权方式且账号场景支持。
-
-环境变量（测试用例会自动读取并执行，否则跳过）：
-- `MS_CLIENT_ID`
-- `MS_USERNAME`
-- `MS_PASSWORD`
-
-调用示例：
-```swift
-import MojangAPI
-
-let clientId = ProcessInfo.processInfo.environment["MS_CLIENT_ID"]!
-let username  = ProcessInfo.processInfo.environment["MS_USERNAME"]!
-let password  = ProcessInfo.processInfo.environment["MS_PASSWORD"]!
-
-let profile = try await MicrosoftAuth.loginWithUsernamePassword(clientId: clientId, username: username, password: password)
-```
-
-### 注意事项
-- 未设置上述环境变量时，相关集成测试默认跳过，不会失败。
-- 网络错误统一抛出 `MojangAPIError`，并在微软相关接口返回 `httpError(status:code:message)`，便于定位问题。
-- `GET /minecraft/profile` 使用 Bearer 安全方案，鉴权可由中间件自动注入 `Authorization: Bearer <token>`。
-
-## 环境变量快速配置
-
-```bash
-export MS_ACCESS_TOKEN="<your_ms_access_token>"
-export MS_CLIENT_ID="<your_client_id>"
-export MS_USERNAME="<your_username>"
-export MS_PASSWORD="<your_password>"
+// 获取最新 release 的包详情与资源索引对象
+if let latest = try await Mojang.latestInfo(type: .release),
+   let version = try await Mojang.versionsInfo(id: latest.id).first {
+    // 通过生成类型 Version 的扩展解析包详情
+    if let game = try await Components.Schemas.Version(id: version.id, _type: .release, url: version.url).gameVersion,
+       let asset = try await game.assetIndexObject {
+        // 遍历资源对象并构造下载 URL
+        for (path, obj) in asset.objects {
+            let url = obj.resourceURL
+            print(path, url.absoluteString)
+        }
+    }
+}
 ```
 
 ## 测试与 CI
 
-- 默认仅跑单元/离线测试：在 push/pull_request 上执行 `swift build` 与 `swift test`
-- 集成测试分组：仅在手动触发（workflow_dispatch）且注入 secrets 时运行
-- 工作流文件：.github/workflows/tests.yml（运行环境 macos-latest）
-
-## 错误处理与诊断
-
-- 统一错误类型：
-  - `requestFailed(status)`：非文档化错误状态
-  - `notFound`：404
-  - `httpError(status:code:message)`：微软相关接口返回的结构化错误，包含服务端 code 与 message
-- 解析扩展：所有操作统一使用 `output.jsonOrThrow()`，自动映射错误分支
-
-## 缓存与并发
-
-- 并发安全缓存（actor）：缓存清单与按版本的细粒度数据，并带 LRU 逐出策略
-- 清单 TTL 默认 1 小时，后续可暴露配置接口以便调整
-
-## 变更说明
-
-- 为适配上游包响应在部分版本中缺少 `client_mappings`/`server_mappings`，`Downloads` 必填字段仅保留 `client` 与 `server`，提高解析兼容性
+- 包含离线解析与基础 API 测试，默认无需网络密钥即可运行
+- GitHub Actions：.github/workflows/tests.yml（macos-latest），在 push/pull_request 自动构建与测试
